@@ -32,34 +32,41 @@ export const Todo: React.FC<Props> = ({
     setTitle(todo.title);
   }, [todo.title]);
 
-  const startEditing = () => {
+  const handleStartEditing = () => {
     setTitle(todo.title);
     setIsEditing(true);
   };
 
-  const cancelEditing = () => {
+  const handleCancelEditing = () => {
     setTitle(todo.title);
     setIsEditing(false);
   };
 
-  const commitEditing = async () => {
-    const trimmed = title.trim();
+  const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape') {
+      handleCancelEditing();
+    }
+  };
 
-    if (trimmed === '') {
+  const handleCommitEditing = async () => {
+    const trimmedTitle = title.trim();
+
+    if (trimmedTitle === '') {
       onDelete?.(todo.id);
 
       return;
     }
 
-    if (trimmed === todo.title) {
+    if (trimmedTitle === todo.title) {
       setIsEditing(false);
 
       return;
     }
 
-    const ok = await (onUpdateTitle?.(todo.id, trimmed) ?? Promise.resolve(false));
+    const isUpdated = await (onUpdateTitle?.(todo.id, trimmedTitle) ??
+      Promise.resolve(false));
 
-    if (ok) {
+    if (isUpdated) {
       setIsEditing(false);
     }
   };
@@ -81,7 +88,7 @@ export const Todo: React.FC<Props> = ({
         <span
           data-cy="TodoTitle"
           className="todo__title"
-          onDoubleClick={startEditing}
+          onDoubleClick={handleStartEditing}
         >
           {todo.title}
         </span>
@@ -91,7 +98,7 @@ export const Todo: React.FC<Props> = ({
         <form
           onSubmit={e => {
             e.preventDefault();
-            void commitEditing();
+            void handleCommitEditing();
           }}
         >
           <input
@@ -101,12 +108,8 @@ export const Todo: React.FC<Props> = ({
             className="todo__title-field"
             value={title}
             onChange={e => setTitle(e.target.value)}
-            onBlur={() => void commitEditing()}
-            onKeyUp={e => {
-              if (e.key === 'Escape') {
-                cancelEditing();
-              }
-            }}
+            onBlur={() => void handleCommitEditing()}
+            onKeyUp={handleKeyUp}
           />
         </form>
       )}

@@ -23,9 +23,9 @@ export const NewTodo: React.FC<Props> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const success = await onSubmit(title);
+    const isSuccessful = await onSubmit(title);
 
-    if (success) {
+    if (isSuccessful) {
       setTitle('');
     }
   };

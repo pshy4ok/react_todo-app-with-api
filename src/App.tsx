@@ -5,6 +5,7 @@ import cn from 'classnames';
 import {
   createTodo,
   deleteTodo,
+  getFilteredTodos,
   getTodos,
   updateTodo,
   USER_ID,
@@ -84,16 +85,7 @@ export const App: React.FC = () => {
     return <UserWarning />;
   }
 
-  const visibleTodos = todos.filter(todo => {
-    switch (filter) {
-      case FILTERS.active:
-        return !todo.completed;
-      case FILTERS.completed:
-        return todo.completed;
-      default:
-        return true;
-    }
-  });
+  const visibleTodos = getFilteredTodos(todos, filter);
 
   const allCompleted = todos.length > 0 && todos.every(t => t.completed);
 
@@ -101,22 +93,22 @@ export const App: React.FC = () => {
     setUpdatingIds(prev => new Set(prev).add(id));
 
     try {
-      const updated = await updateTodo(id, { completed: nextCompleted });
+      const updatedTodo = await updateTodo(id, { completed: nextCompleted });
 
       setTodos(prev =>
         prev.map(t =>
-          t.id === id ? { ...t, completed: updated.completed } : t,
+          t.id === id ? { ...t, completed: updatedTodo.completed } : t,
         ),
       );
     } catch (e) {
       showError('Unable to update a todo');
     } finally {
       setUpdatingIds(prev => {
-        const next = new Set(prev);
+        const nextUpdatingIds = new Set(prev);
 
-        next.delete(id);
+        nextUpdatingIds.delete(id);
 
-        return next;
+        return nextUpdatingIds;
       });
     }
   };
@@ -131,11 +123,11 @@ export const App: React.FC = () => {
       showError('Unable to delete a todo');
     } finally {
       setDeletingIds(prev => {
-        const next = new Set(prev);
+        const nextDeletingIds = new Set(prev);
 
-        next.delete(id);
+        nextDeletingIds.delete(id);
 
-        return next;
+        return nextDeletingIds;
       });
       setFocusTick(t => t + 1);
     }
@@ -153,19 +145,19 @@ export const App: React.FC = () => {
       return false;
     }
 
-    const current = todos.find(t => t.id === id);
+    const currentTodo = todos.find(t => t.id === id);
 
-    if (!current || current.title === title) {
+    if (!currentTodo || currentTodo.title === title) {
       return true;
     }
 
     setUpdatingIds(prev => new Set(prev).add(id));
 
     try {
-      const updated = await updateTodo(id, { title });
+      const updatedTodo = await updateTodo(id, { title });
 
       setTodos(prev =>
-        prev.map(t => (t.id === id ? { ...t, title: updated.title } : t)),
+        prev.map(t => (t.id === id ? { ...t, title: updatedTodo.title } : t)),
       );
 
       return true;
@@ -190,24 +182,24 @@ export const App: React.FC = () => {
     }
 
     const nextCompleted = !allCompleted;
-    const toChange = todos
+    const todosToUpdate = todos
       .filter(t => t.completed !== nextCompleted)
       .map(t => t.id);
 
-    if (toChange.length === 0) {
+    if (todosToUpdate.length === 0) {
       return;
     }
 
     setUpdatingIds(prev => {
       const next = new Set(prev);
 
-      toChange.forEach(id => next.add(id));
+      todosToUpdate.forEach(id => next.add(id));
 
       return next;
     });
 
     const results = await Promise.allSettled(
-      toChange.map(async id => {
+      todosToUpdate.map(async id => {
         try {
           const updated = await updateTodo(id, { completed: nextCompleted });
 
@@ -377,7 +369,7 @@ export const App: React.FC = () => {
               {todos.filter(todo => !todo.completed).length} items left
             </span>
 
-            <Filter current={filter} onChange={setFilter} />
+            <Filter currentFilter={filter} onChange={setFilter} />
 
             <button
               type="button"

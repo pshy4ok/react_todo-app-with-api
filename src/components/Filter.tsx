@@ -3,11 +3,14 @@ import cn from 'classnames';
 import { FILTERS, FilterType } from '../constants/filters';
 
 type Props = {
-  current: FilterType;
+  currentFilter: FilterType;
   onChange: (next: FilterType) => void;
 };
 
-export const Filter: React.FC<Props> = ({ current, onChange }) => {
+export const Filter: React.FC<Props> = ({
+  currentFilter: current,
+  onChange,
+}) => {
   return (
     <nav className="filter" data-cy="Filter">
       <a
