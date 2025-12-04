@@ -7,15 +7,14 @@ type Props = {
   onChange: (next: FilterType) => void;
 };
 
-export const Filter: React.FC<Props> = ({
-  currentFilter: current,
-  onChange,
-}) => {
+export const Filter: React.FC<Props> = ({ currentFilter, onChange }) => {
   return (
     <nav className="filter" data-cy="Filter">
       <a
         href="#/"
-        className={cn('filter__link', { selected: current === FILTERS.all })}
+        className={cn('filter__link', {
+          selected: currentFilter === FILTERS.all,
+        })}
         data-cy="FilterLinkAll"
         onClick={() => onChange(FILTERS.all)}
       >
@@ -24,7 +23,9 @@ export const Filter: React.FC<Props> = ({
 
       <a
         href="#/active"
-        className={cn('filter__link', { selected: current === FILTERS.active })}
+        className={cn('filter__link', {
+          selected: currentFilter === FILTERS.active,
+        })}
         data-cy="FilterLinkActive"
         onClick={() => onChange(FILTERS.active)}
       >
@@ -34,7 +35,7 @@ export const Filter: React.FC<Props> = ({
       <a
         href="#/completed"
         className={cn('filter__link', {
-          selected: current === FILTERS.completed,
+          selected: currentFilter === FILTERS.completed,
         })}
         data-cy="FilterLinkCompleted"
         onClick={() => onChange(FILTERS.completed)}

@@ -5,7 +5,6 @@ import cn from 'classnames';
 import {
   createTodo,
   deleteTodo,
-  getFilteredTodos,
   getTodos,
   updateTodo,
   USER_ID,
@@ -16,16 +15,16 @@ import { FILTERS, FilterType } from './constants/filters';
 import { NewTodo } from './components/NewTodo';
 import { TodoList } from './components/TodoList';
 import { Filter } from './components/Filter';
+import { getFilteredTodos } from './utils/todoHelpers';
 
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [notificationVisible, setNotificationVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isNotificationVisible, setIsNotificationVisible] = useState(false);
   const [filter, setFilter] = useState<FilterType>(FILTERS.all);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [nextId, setNextId] = useState<number>(1);
-  const [adding, setAdding] = useState(false);
+  const [, setNextId] = useState<number>(1);
+  const [isAdding, setIsAdding] = useState(false);
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
   const [deletingIds, setDeletingIds] = useState<Set<number>>(new Set());
   const [updatingIds, setUpdatingIds] = useState<Set<number>>(new Set());
@@ -34,28 +33,28 @@ export const App: React.FC = () => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const showError = (message: string) => {
-    setError(message);
-    setNotificationVisible(true);
+    setErrorMessage(message);
+    setIsNotificationVisible(true);
 
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }
 
     timerRef.current = setTimeout(() => {
-      setNotificationVisible(false);
+      setIsNotificationVisible(false);
     }, 3000);
   };
 
   useEffect(() => {
     const fetchTodos = async () => {
-      setLoading(true);
+      setIsLoading(true);
 
       if (timerRef.current) {
         clearTimeout(timerRef.current);
       }
 
-      setNotificationVisible(false);
-      setError('');
+      setIsNotificationVisible(false);
+      setErrorMessage('');
 
       try {
         const data = await getTodos();
@@ -74,7 +73,7 @@ export const App: React.FC = () => {
           showError('Unable to load todos');
         }
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
@@ -242,7 +241,7 @@ export const App: React.FC = () => {
       return false;
     }
 
-    setAdding(true);
+    setIsAdding(true);
     const temporaryTodo: Todo = {
       id: 0,
       userId: USER_ID,
@@ -264,7 +263,7 @@ export const App: React.FC = () => {
       return false;
     } finally {
       setTempTodo(null);
-      setAdding(false);
+      setIsAdding(false);
     }
   };
 
@@ -331,14 +330,14 @@ export const App: React.FC = () => {
           )}
 
           <NewTodo
-            disabled={adding}
+            disabled={isAdding}
             onSubmit={handleAdd}
             focusTick={focusTick}
           />
         </header>
 
         <section className="todoapp__main" data-cy="TodoList">
-          {loading && (
+          {isLoading && (
             <div className="modal overlay is-active" data-cy="Loader">
               <div className="modal-background has-background-white-ter" />
               <div className="loader" />
@@ -388,16 +387,16 @@ export const App: React.FC = () => {
         data-cy="ErrorNotification"
         className={cn(
           'notification is-danger is-light has-text-weight-normal',
-          { hidden: !notificationVisible },
+          { hidden: !isNotificationVisible },
         )}
       >
         <button
           data-cy="HideErrorButton"
           type="button"
           className="delete"
-          onClick={() => setNotificationVisible(false)}
+          onClick={() => setIsNotificationVisible(false)}
         />
-        {error}
+        {errorMessage}
       </div>
     </div>
   );
